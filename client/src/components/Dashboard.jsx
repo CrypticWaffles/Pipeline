@@ -14,7 +14,10 @@ export default function Dashboard() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/stats`, { credentials: 'include' })
+    const token = localStorage.getItem('token')
+    fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/stats`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then(setStats)
       .catch(() => setError('Failed to load stats.'))

@@ -4,6 +4,8 @@
 
 **Live app:** [pipeline-nu-ecru.vercel.app](https://pipeline-nu-ecru.vercel.app)
 
+![Pipeline](pipeline.png)
+
 A Kanban-style job application tracker that helps candidates organize their job search, track interview stages, and stay on top of every application.
 
 ## Features
