@@ -1,5 +1,9 @@
 # Pipeline — Job Application Tracker
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**Live app:** [pipeline-nu-ecru.vercel.app](https://pipeline-nu-ecru.vercel.app)
+
 A Kanban-style job application tracker that helps candidates organize their job search, track interview stages, and stay on top of every application.
 
 ## Features
@@ -61,8 +65,13 @@ Frontend runs on `http://localhost:5173`, backend on `http://localhost:3001`.
 
 ## Deployment
 
-- **Frontend** — import the repo into [Vercel](https://vercel.com), set root directory to `client`, add `VITE_API_URL=https://your-backend.railway.app`
-- **Backend** — deploy to [Railway](https://railway.app) with root directory `server`, add a PostgreSQL database, and set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SESSION_SECRET`, `CLIENT_URL`, `GOOGLE_CALLBACK_URL`, and `NODE_ENV=production`
+| Service | URL |
+|---|---|
+| Frontend (Vercel) | [pipeline-nu-ecru.vercel.app](https://pipeline-nu-ecru.vercel.app) |
+| Backend (Railway) | [pipeline-server-production-0fd5.up.railway.app](https://pipeline-server-production-0fd5.up.railway.app) |
+
+- **Frontend** — deployed to [Vercel](https://vercel.com) with root directory `client` and `VITE_API_URL` pointing to the Railway backend
+- **Backend** — deployed to [Railway](https://railway.app) with root directory `server`, a provisioned PostgreSQL database, and env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SESSION_SECRET`, `CLIENT_URL`, `GOOGLE_CALLBACK_URL`, `NODE_ENV=production`
 
 ## Roadmap
 
