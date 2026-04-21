@@ -39,7 +39,15 @@ export default function App() {
   const [dark, setDark] = useDarkMode()
 
   useEffect(() => {
-    fetch(`${API}/auth/me`, { credentials: 'include' })
+    const params = new URLSearchParams(window.location.search)
+    const urlToken = params.get('token')
+    if (urlToken) {
+      localStorage.setItem('token', urlToken)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+    const token = urlToken ?? localStorage.getItem('token')
+    if (!token) { setUser(null); return }
+    fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(({ user }) => setUser(user ?? null))
       .catch(() => setUser(null))
@@ -55,7 +63,7 @@ export default function App() {
   }, [user])
 
   async function logout() {
-    await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' })
+    localStorage.removeItem('token')
     setUser(null)
     setJobs([])
   }

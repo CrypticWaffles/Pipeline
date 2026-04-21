@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import session from 'express-session'
 import passport from './auth.js'
+import { jwtMiddleware } from './jwt.js'
 import { initDb } from './db.js'
 import jobsRouter from './routes/jobs.js'
 import authRouter from './routes/auth.js'
@@ -29,6 +30,7 @@ app.use(session({
 }))
 app.use(passport.initialize())
 app.use(passport.session())
+app.use(jwtMiddleware)
 
 app.use('/auth', authRouter)
 app.use('/api/jobs', jobsRouter)
