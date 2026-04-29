@@ -31,21 +31,57 @@ function exportCSV(jobs) {
   URL.revokeObjectURL(a.href)
 }
 
+const FIELD_ALIASES = {
+  company: ['company', 'company name', 'employer', 'organization'],
+  role:    ['role', 'position', 'position title', 'job title', 'title', 'job'],
+  stage:   ['stage', 'status', 'application status'],
+  salary:  ['salary', 'compensation', 'pay', 'wage'],
+  notes:   ['notes', 'note', 'comments'],
+  link:    ['link', 'url', 'job link', 'job url', 'application link'],
+}
+
+function parseLine(line) {
+  const cols = []
+  let cur = '', inQuote = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') { if (inQuote && line[i + 1] === '"') { cur += '"'; i++ } else inQuote = !inQuote }
+    else if (ch === ',' && !inQuote) { cols.push(cur.trim()); cur = '' }
+    else cur += ch
+  }
+  cols.push(cur.trim())
+  return cols
+}
+
 function parseCSV(text) {
   const lines = text.trim().split(/\r?\n/)
-  if (lines.length < 2) return []
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''))
-  return lines.slice(1).map(line => {
-    const cols = []
-    let cur = '', inQuote = false
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i]
-      if (ch === '"') { if (inQuote && line[i + 1] === '"') { cur += '"'; i++ } else inQuote = !inQuote }
-      else if (ch === ',' && !inQuote) { cols.push(cur); cur = '' }
-      else cur += ch
+
+  // Find the first row that has recognisable company + role columns
+  let headerIdx = -1, colMap = {}
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const cols = parseLine(lines[i]).map(h => h.toLowerCase().replace(/"/g, '').trim())
+    const map = {}
+    for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
+      const idx = cols.findIndex(h => aliases.includes(h))
+      if (idx !== -1) map[field] = idx
     }
-    cols.push(cur)
-    return Object.fromEntries(headers.map((h, i) => [h, cols[i]?.trim() ?? '']))
+    if (map.company !== undefined && map.role !== undefined) {
+      headerIdx = i; colMap = map; break
+    }
+  }
+
+  if (headerIdx === -1) return []
+
+  return lines.slice(headerIdx + 1).map(line => {
+    const cols = parseLine(line)
+    return {
+      company: cols[colMap.company] ?? '',
+      role:    cols[colMap.role]    ?? '',
+      stage:   cols[colMap.stage]   ?? '',
+      salary:  cols[colMap.salary]  ?? '',
+      notes:   cols[colMap.notes]   ?? '',
+      link:    cols[colMap.link]    ?? '',
+    }
   }).filter(r => r.company && r.role)
 }
 
