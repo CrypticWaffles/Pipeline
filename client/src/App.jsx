@@ -83,6 +83,11 @@ export default function App() {
     setJobs(prev => prev.filter(j => j.id !== id))
   }
 
+  async function importJobs(rows) {
+    const inserted = await api.importJobs(rows)
+    setJobs(prev => [...prev, ...inserted])
+  }
+
   async function moveJob(id, newStage) {
     setJobs(prev => prev.map(j => j.id === id ? { ...j, stage: newStage } : j))
     try {
@@ -151,7 +156,7 @@ export default function App() {
         ) : view === 'dashboard' ? (
           <Dashboard />
         ) : (
-          <Board jobs={jobs} onAdd={addJob} onUpdate={updateJob} onDelete={deleteJob} onMove={moveJob} />
+          <Board jobs={jobs} onAdd={addJob} onUpdate={updateJob} onDelete={deleteJob} onMove={moveJob} onImport={importJobs} />
         )}
       </main>
     </div>

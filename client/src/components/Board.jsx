@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -21,10 +21,40 @@ const STAGE_COLORS = {
   'Rejected':     'bg-red-400',
 }
 
-export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove }) {
+function exportCSV(jobs) {
+  const header = 'company,role,salary,stage,notes,link'
+  const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const rows = jobs.map(j => [j.company, j.role, j.salary, j.stage, j.notes, j.link].map(escape).join(','))
+  const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' })
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'pipeline-jobs.csv' })
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/)
+  if (lines.length < 2) return []
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''))
+  return lines.slice(1).map(line => {
+    const cols = []
+    let cur = '', inQuote = false
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (ch === '"') { if (inQuote && line[i + 1] === '"') { cur += '"'; i++ } else inQuote = !inQuote }
+      else if (ch === ',' && !inQuote) { cols.push(cur); cur = '' }
+      else cur += ch
+    }
+    cols.push(cur)
+    return Object.fromEntries(headers.map((h, i) => [h, cols[i]?.trim() ?? '']))
+  }).filter(r => r.company && r.role)
+}
+
+export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove, onImport }) {
   const [activeJob, setActiveJob] = useState(null)
   const [overId, setOverId] = useState(null)
   const [modalState, setModalState] = useState({ open: false, job: null })
+  const [importing, setImporting] = useState(false)
+  const fileRef = useRef(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -49,6 +79,17 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove }) {
     }
   }
 
+  async function handleImport(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const text = await file.text()
+    const rows = parseCSV(text)
+    if (!rows.length) return
+    setImporting(true)
+    try { await onImport(rows) } finally { setImporting(false) }
+  }
+
   function openAdd() { setModalState({ open: true, job: null }) }
   function openEdit(job) { setModalState({ open: true, job }) }
   function closeModal() { setModalState({ open: false, job: null }) }
@@ -66,12 +107,29 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove }) {
     <>
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Board</span>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors"
-        >
-          <span className="text-base leading-none">+</span> Add Job
-        </button>
+        <div className="flex items-center gap-2">
+          <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+          <button
+            onClick={() => fileRef.current.click()}
+            disabled={importing}
+            className="inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-600 dark:text-gray-300 text-sm font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+          >
+            {importing ? 'Importing…' : 'Import CSV'}
+          </button>
+          <button
+            onClick={() => exportCSV(jobs)}
+            disabled={jobs.length === 0}
+            className="inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-600 dark:text-gray-300 text-sm font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={openAdd}
+            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors"
+          >
+            <span className="text-base leading-none">+</span> Add Job
+          </button>
+        </div>
       </div>
 
       <DndContext

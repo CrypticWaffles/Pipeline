@@ -10,6 +10,34 @@ function requireAuth(req, res, next) {
 
 router.use(requireAuth)
 
+// POST /api/jobs/import
+router.post('/import', async (req, res) => {
+  const rows = req.body
+  if (!Array.isArray(rows) || rows.length === 0)
+    return res.status(400).json({ error: 'Expected non-empty array' })
+
+  const VALID_STAGES = ['Applied', 'Phone Screen', 'Interview', 'Offer', 'Rejected']
+  const uid = req.user.id
+  const params = []
+  const placeholders = []
+  let i = 1
+
+  for (const row of rows) {
+    const { company, role, salary, stage, notes, link } = row
+    if (!company || !role) continue
+    placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`)
+    params.push(uid, company, role, salary || null, VALID_STAGES.includes(stage) ? stage : 'Applied', notes || null, link || null)
+  }
+
+  if (!placeholders.length) return res.status(400).json({ error: 'No valid rows' })
+
+  const { rows: inserted } = await pool.query(
+    `INSERT INTO jobs (user_id, company, role, salary, stage, notes, link) VALUES ${placeholders.join(', ')} RETURNING *`,
+    params
+  )
+  res.status(201).json(inserted)
+})
+
 // GET /api/jobs
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
