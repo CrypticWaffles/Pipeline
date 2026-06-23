@@ -5,7 +5,7 @@ export default function Column({ stage, color, jobs, isOver, onEdit, onDelete })
   const { setNodeRef } = useDroppable({ id: stage })
 
   return (
-    <div className="flex flex-col w-64 shrink-0">
+    <div className="flex flex-col w-64 shrink-0 h-full">
       <div className="flex items-center gap-2 mb-3">
         <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{stage}</h2>
@@ -16,7 +16,7 @@ export default function Column({ stage, color, jobs, isOver, onEdit, onDelete })
 
       <div
         ref={setNodeRef}
-        className={`flex flex-col gap-2 flex-1 rounded-lg p-2 transition-colors min-h-20 ${
+        className={`flex flex-col gap-2 flex-1 overflow-y-auto rounded-lg p-2 transition-colors min-h-20 ${
           isOver
             ? 'bg-indigo-50 dark:bg-indigo-950 ring-2 ring-indigo-200 dark:ring-indigo-800'
             : 'bg-gray-100 dark:bg-gray-900'

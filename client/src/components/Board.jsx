@@ -140,22 +140,22 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove, onImpor
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Board</span>
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex items-center justify-end sm:justify-between px-3 py-2 sm:px-6 sm:py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400">Board</span>
         <div className="flex items-center gap-2">
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
           <button
             onClick={() => fileRef.current.click()}
             disabled={importing}
-            className="inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-600 dark:text-gray-300 text-sm font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+            className="hidden sm:inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-600 dark:text-gray-300 text-sm font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
           >
             {importing ? 'Importing…' : 'Import CSV'}
           </button>
           <button
             onClick={() => exportCSV(jobs)}
             disabled={jobs.length === 0}
-            className="inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-600 dark:text-gray-300 text-sm font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+            className="hidden sm:inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-600 dark:text-gray-300 text-sm font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
           >
             Export CSV
           </button>
@@ -175,7 +175,7 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove, onImpor
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 p-4 overflow-x-auto h-[calc(100vh-112px)]">
+        <div className="flex gap-4 p-4 overflow-x-auto flex-1 min-h-0">
           {STAGES.map(stage => (
             <Column
               key={stage}
@@ -203,6 +203,6 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove, onImpor
           onClose={closeModal}
         />
       )}
-    </>
+    </div>
   )
 }

@@ -160,7 +160,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+    <div className="h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
       {isDemo && (
         <div className="bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-800 px-4 py-2 flex items-center justify-center gap-2 text-xs text-amber-800 dark:text-amber-300">
           <span>Demo mode — changes are temporary and won't be saved.</span>
@@ -169,17 +169,17 @@ export default function App() {
           </a>
         </div>
       )}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 py-3 sm:px-6 sm:py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Pipeline</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4">
           <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 text-sm">
             <button
               onClick={() => setView('board')}
-              className={`px-3 py-1 rounded-md transition-colors ${view === 'board' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+              className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-md transition-colors ${view === 'board' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
             >Board</button>
             <button
               onClick={() => setView('dashboard')}
-              className={`px-3 py-1 rounded-md transition-colors ${view === 'dashboard' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+              className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-md transition-colors ${view === 'dashboard' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
             >Dashboard</button>
           </div>
           <button
@@ -191,8 +191,8 @@ export default function App() {
           </button>
           <div className="flex items-center gap-2">
             {user.avatar && <img src={user.avatar} className="w-7 h-7 rounded-full" alt="" />}
-            <span className="text-sm text-gray-600 dark:text-gray-400">{user.name}</span>
-            <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-1">
+            <span className="hidden sm:inline text-sm text-gray-600 dark:text-gray-400">{user.name}</span>
+            <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               {isDemo ? 'Exit demo' : 'Sign out'}
             </button>
           </div>
