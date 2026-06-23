@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Board from './components/Board'
 import Dashboard from './components/Dashboard'
 import { api } from './api'
+import { DEMO_USER, demoApi, computeDemoStats, resetDemoJobs } from './demoData'
 
 const API = import.meta.env.VITE_API_URL ?? ''
 
@@ -17,7 +18,6 @@ function useDarkMode() {
     localStorage.setItem('theme', dark ? 'dark' : 'light')
   }, [dark])
 
-  // Sync if system preference changes and user hasn't manually set a preference
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     function handleChange(e) {
@@ -32,20 +32,37 @@ function useDarkMode() {
 
 export default function App() {
   const [user, setUser] = useState(undefined)
+  const [isDemo, setIsDemo] = useState(false)
   const [view, setView] = useState('board')
   const [jobs, setJobs] = useState([])
   const [jobsLoading, setJobsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [dark, setDark] = useDarkMode()
 
+  const demoStats = useMemo(() => (isDemo ? computeDemoStats(jobs) : null), [isDemo, jobs])
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const urlToken = params.get('token')
     if (urlToken) {
       localStorage.setItem('token', urlToken)
+      localStorage.removeItem('demoMode')
       window.history.replaceState({}, '', window.location.pathname)
+      fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${urlToken}` } })
+        .then(r => r.json())
+        .then(({ user }) => setUser(user ?? null))
+        .catch(() => setUser(null))
+      return
     }
-    const token = urlToken ?? localStorage.getItem('token')
+
+    if (localStorage.getItem('demoMode') === 'true') {
+      resetDemoJobs()
+      setIsDemo(true)
+      setUser(DEMO_USER)
+      return
+    }
+
+    const token = localStorage.getItem('token')
     if (!token) { setUser(null); return }
     fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
@@ -56,42 +73,54 @@ export default function App() {
   useEffect(() => {
     if (!user) return
     setJobsLoading(true)
-    api.getJobs()
+    const activeApi = isDemo ? demoApi : api
+    activeApi.getJobs()
       .then(setJobs)
       .catch(() => setError('Failed to load jobs.'))
       .finally(() => setJobsLoading(false))
-  }, [user])
+  }, [user, isDemo])
+
+  function enterDemo() {
+    resetDemoJobs()
+    localStorage.setItem('demoMode', 'true')
+    setIsDemo(true)
+    setUser(DEMO_USER)
+  }
 
   async function logout() {
     localStorage.removeItem('token')
+    localStorage.removeItem('demoMode')
     setUser(null)
+    setIsDemo(false)
     setJobs([])
   }
 
+  const activeApi = isDemo ? demoApi : api
+
   async function addJob(job) {
-    const created = await api.createJob(job)
+    const created = await activeApi.createJob(job)
     setJobs(prev => [...prev, created])
   }
 
   async function updateJob(updated) {
-    const saved = await api.updateJob(updated.id, updated)
+    const saved = await activeApi.updateJob(updated.id, updated)
     setJobs(prev => prev.map(j => j.id === saved.id ? saved : j))
   }
 
   async function deleteJob(id) {
-    await api.deleteJob(id)
+    await activeApi.deleteJob(id)
     setJobs(prev => prev.filter(j => j.id !== id))
   }
 
   async function importJobs(rows) {
-    const inserted = await api.importJobs(rows)
+    const inserted = await activeApi.importJobs(rows)
     setJobs(prev => [...prev, ...inserted])
   }
 
   async function moveJob(id, newStage) {
     setJobs(prev => prev.map(j => j.id === id ? { ...j, stage: newStage } : j))
     try {
-      await api.updateJob(id, { stage: newStage })
+      await activeApi.updateJob(id, { stage: newStage })
     } catch {
       setJobs(prev => prev.map(j => j.id === id ? { ...j, stage: j.stage } : j))
     }
@@ -115,12 +144,31 @@ export default function App() {
           <GoogleIcon />
           Sign in with Google
         </a>
+        <div className="flex items-center gap-3 w-56">
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+          <span className="text-xs text-gray-400 dark:text-gray-600">or</span>
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <button
+          onClick={enterDemo}
+          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          Try the demo
+        </button>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+      {isDemo && (
+        <div className="bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-800 px-4 py-2 flex items-center justify-center gap-2 text-xs text-amber-800 dark:text-amber-300">
+          <span>Demo mode — changes are temporary and won't be saved.</span>
+          <a href={`${API}/auth/google`} className="font-medium underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-200">
+            Sign in with Google to save your data
+          </a>
+        </div>
+      )}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Pipeline</h1>
         <div className="flex items-center gap-4">
@@ -144,7 +192,9 @@ export default function App() {
           <div className="flex items-center gap-2">
             {user.avatar && <img src={user.avatar} className="w-7 h-7 rounded-full" alt="" />}
             <span className="text-sm text-gray-600 dark:text-gray-400">{user.name}</span>
-            <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-1">Sign out</button>
+            <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-1">
+              {isDemo ? 'Exit demo' : 'Sign out'}
+            </button>
           </div>
         </div>
       </header>
@@ -154,7 +204,7 @@ export default function App() {
         ) : error ? (
           <div className="flex items-center justify-center h-full text-sm text-red-500">{error}</div>
         ) : view === 'dashboard' ? (
-          <Dashboard />
+          <Dashboard stats={demoStats} />
         ) : (
           <Board jobs={jobs} onAdd={addJob} onUpdate={updateJob} onDelete={deleteJob} onMove={moveJob} onImport={importJobs} />
         )}

@@ -8,12 +8,17 @@ const STAGE_COLORS = {
   'Rejected':     'bg-red-400',
 }
 
-export default function Dashboard() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+export default function Dashboard({ stats: propStats }) {
+  const [stats, setStats] = useState(propStats ?? null)
+  const [loading, setLoading] = useState(!propStats)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (propStats !== undefined) {
+      setStats(propStats)
+      setLoading(false)
+      return
+    }
     const token = localStorage.getItem('token')
     fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/stats`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -22,7 +27,7 @@ export default function Dashboard() {
       .then(setStats)
       .catch(() => setError('Failed to load stats.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [propStats])
 
   if (loading) return <div className="flex items-center justify-center h-full text-sm text-gray-400">Loading...</div>
   if (error)   return <div className="flex items-center justify-center h-full text-sm text-red-500">{error}</div>
