@@ -233,7 +233,7 @@ export default function App() {
         ) : error ? (
           <div className="flex items-center justify-center h-full text-sm text-red-500">{error}</div>
         ) : view === 'dashboard' ? (
-          <Dashboard stats={demoStats} />
+          <Dashboard stats={isDemo ? demoStats : undefined} />
         ) : (
           <Board jobs={jobs} onAdd={addJob} onUpdate={updateJob} onDelete={deleteJob} onMove={moveJob} onImport={importJobs} />
         )}
