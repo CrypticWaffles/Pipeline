@@ -7,6 +7,7 @@ import { initDb } from './db.js'
 import jobsRouter from './routes/jobs.js'
 import authRouter from './routes/auth.js'
 import statsRouter from './routes/stats.js'
+import accountRouter from './routes/account.js'
 
 const PORT = process.env.PORT ?? 3001
 const SESSION_SECRET = process.env.SESSION_SECRET
@@ -42,6 +43,7 @@ app.use(jwtMiddleware)
 app.use('/auth', authRouter)
 app.use('/api/jobs', jobsRouter)
 app.use('/api/stats', statsRouter)
+app.use('/api/account', accountRouter)
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 // eslint-disable-next-line no-unused-vars

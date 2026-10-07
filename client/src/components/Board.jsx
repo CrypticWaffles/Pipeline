@@ -3,9 +3,10 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
-  pointerWithin,
+  rectIntersection,
 } from '@dnd-kit/core'
 import Column from './Column'
 import JobCard from './JobCard'
@@ -92,7 +93,8 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove, onImpor
   const fileRef = useRef(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
   )
 
   function handleDragStart({ active }) {
@@ -169,7 +171,7 @@ export default function Board({ jobs, onAdd, onUpdate, onDelete, onMove, onImpor
 
       <DndContext
         sensors={sensors}
-        collisionDetection={pointerWithin}
+        collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}

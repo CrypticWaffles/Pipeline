@@ -102,6 +102,17 @@ export default function App() {
     setJobs([])
   }
 
+  async function deleteAccount() {
+    if (!window.confirm('Delete your account and all your data? This cannot be undone.')) return
+    try {
+      await api.deleteAccount()
+    } catch {
+      window.alert('Failed to delete account. Please try again.')
+      return
+    }
+    logout()
+  }
+
   const activeApi = isDemo ? demoApi : api
 
   async function addJob(job) {
@@ -162,6 +173,12 @@ export default function App() {
         >
           Try the demo
         </button>
+        <a
+          href="/privacy.html"
+          className="text-xs text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 underline underline-offset-2"
+        >
+          Privacy Policy
+        </a>
       </div>
     )
   }
@@ -202,6 +219,11 @@ export default function App() {
             <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               {isDemo ? 'Exit demo' : 'Sign out'}
             </button>
+            {!isDemo && (
+              <button onClick={deleteAccount} className="text-sm text-gray-400 hover:text-red-500">
+                Delete account
+              </button>
+            )}
           </div>
         </div>
       </header>

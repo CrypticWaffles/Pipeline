@@ -24,4 +24,5 @@ export const api = {
   updateJob:  (id, data)   => request(`/jobs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteJob:  (id)         => request(`/jobs/${id}`, { method: 'DELETE' }),
   importJobs: (rows)       => request('/jobs/import', { method: 'POST', body: JSON.stringify(rows) }),
+  deleteAccount: ()        => request('/account', { method: 'DELETE' }),
 }
