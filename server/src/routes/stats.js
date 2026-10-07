@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 
 const router = Router()
 
@@ -10,7 +11,7 @@ function requireAuth(req, res, next) {
 
 router.use(requireAuth)
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const uid = req.user.id
 
   const [byStagResult, weeklyResult] = await Promise.all([
@@ -51,6 +52,6 @@ router.get('/', async (req, res) => {
     byStage,
     weekly: weeklyResult.rows,
   })
-})
+}))
 
 export default router

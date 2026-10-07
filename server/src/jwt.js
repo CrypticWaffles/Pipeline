@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken'
 
-const SECRET = process.env.JWT_SECRET ?? 'dev-jwt-secret'
+const SECRET = process.env.JWT_SECRET
+if (!SECRET) {
+  throw new Error('JWT_SECRET environment variable must be set')
+}
 
 export function signToken(user) {
   return jwt.sign(

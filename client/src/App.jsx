@@ -30,51 +30,58 @@ function useDarkMode() {
   return [dark, setDark]
 }
 
+function getUrlToken() {
+  return new URLSearchParams(window.location.search).get('token')
+}
+
 export default function App() {
-  const [user, setUser] = useState(undefined)
-  const [isDemo, setIsDemo] = useState(false)
+  const [user, setUser] = useState(() => {
+    if (getUrlToken()) return undefined
+    if (localStorage.getItem('demoMode') === 'true') return DEMO_USER
+    if (!localStorage.getItem('token')) return null
+    return undefined
+  })
+  const [isDemo, setIsDemo] = useState(() => {
+    if (getUrlToken()) return false
+    const demo = localStorage.getItem('demoMode') === 'true'
+    if (demo) resetDemoJobs()
+    return demo
+  })
   const [view, setView] = useState('board')
   const [jobs, setJobs] = useState([])
-  const [jobsLoading, setJobsLoading] = useState(false)
+  const [jobsLoading, setJobsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dark, setDark] = useDarkMode()
 
   const demoStats = useMemo(() => (isDemo ? computeDemoStats(jobs) : null), [isDemo, jobs])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const urlToken = params.get('token')
+    if (isDemo) return
+
+    const urlToken = getUrlToken()
     if (urlToken) {
       localStorage.setItem('token', urlToken)
       localStorage.removeItem('demoMode')
       window.history.replaceState({}, '', window.location.pathname)
-      fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${urlToken}` } })
-        .then(r => r.json())
-        .then(({ user }) => setUser(user ?? null))
-        .catch(() => setUser(null))
-      return
     }
 
-    if (localStorage.getItem('demoMode') === 'true') {
-      resetDemoJobs()
-      setIsDemo(true)
-      setUser(DEMO_USER)
-      return
-    }
+    const token = urlToken ?? localStorage.getItem('token')
+    if (!token) return
 
-    const token = localStorage.getItem('token')
-    if (!token) { setUser(null); return }
     fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(({ user }) => setUser(user ?? null))
       .catch(() => setUser(null))
-  }, [])
+  }, [isDemo])
 
   useEffect(() => {
     if (!user) return
-    setJobsLoading(true)
     const activeApi = isDemo ? demoApi : api
-    activeApi.getJobs()
+    // Deferred into a .then() (rather than called directly) so the loading
+    // flag reset isn't a synchronous setState call in the effect body.
+    Promise.resolve()
+      .then(() => setJobsLoading(true))
+      .then(() => activeApi.getJobs())
       .then(setJobs)
       .catch(() => setError('Failed to load jobs.'))
       .finally(() => setJobsLoading(false))

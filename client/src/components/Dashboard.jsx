@@ -9,25 +9,23 @@ const STAGE_COLORS = {
 }
 
 export default function Dashboard({ stats: propStats }) {
-  const [stats, setStats] = useState(propStats ?? null)
-  const [loading, setLoading] = useState(!propStats)
+  const [fetchedStats, setFetchedStats] = useState(null)
+  const [loading, setLoading] = useState(propStats === undefined)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (propStats !== undefined) {
-      setStats(propStats)
-      setLoading(false)
-      return
-    }
+    if (propStats !== undefined) return
     const token = localStorage.getItem('token')
     fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/stats`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then(setStats)
+      .then(setFetchedStats)
       .catch(() => setError('Failed to load stats.'))
       .finally(() => setLoading(false))
   }, [propStats])
+
+  const stats = propStats !== undefined ? propStats : fetchedStats
 
   if (loading) return <div className="flex items-center justify-center h-full text-sm text-gray-400">Loading...</div>
   if (error)   return <div className="flex items-center justify-center h-full text-sm text-red-500">{error}</div>

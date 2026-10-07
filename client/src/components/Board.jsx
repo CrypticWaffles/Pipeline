@@ -10,8 +10,7 @@ import {
 import Column from './Column'
 import JobCard from './JobCard'
 import JobModal from './JobModal'
-
-export const STAGES = ['Applied', 'Phone Screen', 'Interview', 'Offer', 'Rejected']
+import { STAGES } from '../stages'
 
 const STAGE_COLORS = {
   'Applied':      'bg-blue-500',

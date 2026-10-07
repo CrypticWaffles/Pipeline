@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 
 const router = Router()
 
@@ -11,7 +12,7 @@ function requireAuth(req, res, next) {
 router.use(requireAuth)
 
 // POST /api/jobs/import
-router.post('/import', async (req, res) => {
+router.post('/import', asyncHandler(async (req, res) => {
   const rows = req.body
   if (!Array.isArray(rows) || rows.length === 0)
     return res.status(400).json({ error: 'Expected non-empty array' })
@@ -36,19 +37,19 @@ router.post('/import', async (req, res) => {
     params
   )
   res.status(201).json(inserted)
-})
+}))
 
 // GET /api/jobs
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     'SELECT * FROM jobs WHERE user_id = $1 ORDER BY created_at ASC',
     [req.user.id]
   )
   res.json(rows)
-})
+}))
 
 // POST /api/jobs
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const { company, role, salary, stage, notes, link } = req.body
   if (!company || !role) return res.status(400).json({ error: 'company and role are required' })
 
@@ -59,10 +60,10 @@ router.post('/', async (req, res) => {
     [req.user.id, company, role, salary ?? null, stage ?? 'Applied', notes ?? null, link ?? null]
   )
   res.status(201).json(rows[0])
-})
+}))
 
 // PATCH /api/jobs/:id
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', asyncHandler(async (req, res) => {
   const { company, role, salary, stage, notes, link } = req.body
   const { rows } = await pool.query(
     `UPDATE jobs SET
@@ -79,16 +80,16 @@ router.patch('/:id', async (req, res) => {
   )
   if (!rows.length) return res.status(404).json({ error: 'not found' })
   res.json(rows[0])
-})
+}))
 
 // DELETE /api/jobs/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', asyncHandler(async (req, res) => {
   const { rowCount } = await pool.query(
     'DELETE FROM jobs WHERE id = $1 AND user_id = $2',
     [req.params.id, req.user.id]
   )
   if (!rowCount) return res.status(404).json({ error: 'not found' })
   res.status(204).end()
-})
+}))
 
 export default router

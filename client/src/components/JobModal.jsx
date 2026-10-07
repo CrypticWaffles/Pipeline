@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { STAGES } from './Board'
+import { STAGES } from '../stages'
 
 export default function JobModal({ job, onSave, onClose }) {
   const [form, setForm] = useState({
