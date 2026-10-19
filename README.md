@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Live app:** [pipeline-nu-ecru.vercel.app](https://pipeline-nu-ecru.vercel.app)
+**Live app:** [pipeline.milesgriffith.dev](https://pipeline.milesgriffith.dev)
 
 ![Pipeline](pipeline.png)
 
